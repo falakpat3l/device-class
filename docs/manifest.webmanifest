@@ -1,0 +1,8 @@
+{
+  "name": "Device Class",
+  "short_name": "Device Class",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#000000",
+  "theme_color": "#000000"
+}

@@ -25,6 +25,7 @@ h1{font-weight:600;font-size:28px;margin:0 0 4px}
 .q{font-size:19px;font-weight:500;margin:0 0 6px}
 .hint{color:var(--muted);font-size:14px;margin:0 0 16px}
 .opts{display:flex;flex-direction:column;gap:10px}
+button[hidden]{display:none}
 button{font:inherit;color:var(--fg);background:none;border:1px solid var(--line);border-radius:999px;
 padding:11px 18px;cursor:pointer;transition:border-color .15s,background .15s}
 button:hover,button:focus-visible{border-color:var(--accent);background:rgba(138,180,248,.08);outline:none}
@@ -159,14 +160,15 @@ var meaning = {
   D: ["High risk", "Licensing goes through the Central Licensing Authority (CDSCO)."]
 };
 
-var card = document.getElementById("card"), dots = document.getElementById("dots");
+var card = document.getElementById("card"), dots = document.getElementById("dots"), back = document.getElementById("back");
 var trail = [];   // steps visited, so Back works
 var answers = [];   // the answers picked, shown with the result
 
 function esc(t) { return t.replace(/&/g, "&amp;").replace(/</g, "&lt;"); }
 
-function show(id) {
+function show(id, focus) {
   var s = steps[id];
+  back.hidden = !trail.length;
   dots.innerHTML = "";
   for (var i = 0; i <= trail.length; i++) dots.innerHTML += '<i class="on"></i>';
   var html = '<p class="q">' + esc(s.q) + "</p>" + (s.hint ? '<p class="hint">' + esc(s.hint) + "</p>" : "") + '<div class="opts">';
@@ -175,29 +177,31 @@ function show(id) {
   card.querySelectorAll("button").forEach(function (b) {
     b.addEventListener("click", function () { choose(id, s.a[+b.dataset.i]); });
   });
-  card.querySelector("button").focus();
+  // Move focus only after the user acted, so the first question does not look pre-selected on load.
+  if (focus) card.querySelector("button").focus();
 }
 
 function choose(id, a) {
   trail.push(id);
   answers.push(steps[id].q + " " + a[0]);
-  if (a[1].go) show(a[1].go); else result(a[1]);
+  if (a[1].go) show(a[1].go, true); else result(a[1]);
 }
 
 function result(r) {
   var m = meaning[r.cls];
   dots.innerHTML = "";
+  back.hidden = false;
   card.innerHTML = '<p class="hint">Likely class</p><div class="big">' + r.cls + '</div><p class="risk">' + m[0] + "</p>" +
     "<p>" + esc(r.why) + ".</p><p class=\"hint\">" + m[1] + " If more than one rule fits your device, the highest class applies.</p>" +
     '<ol class="path">' + answers.map(function (t) { return "<li>" + esc(t) + "</li>"; }).join("") + "</ol>";
 }
 
-document.getElementById("back").addEventListener("click", function () {
+back.addEventListener("click", function () {
   if (!trail.length) return;
   answers.pop();
-  show(trail.pop());
+  show(trail.pop(), true);
 });
-document.getElementById("restart").addEventListener("click", function () { trail = []; answers = []; show("medicine"); });
+document.getElementById("restart").addEventListener("click", function () { trail = []; answers = []; show("medicine", true); });
 
 show("medicine");
 </script>

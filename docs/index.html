@@ -182,6 +182,8 @@ function show(id, focus) {
 function choose(id, a) {
   trail.push(id);
   answers.push(steps[id].q + " " + a[0]);
+  // One history entry per answer, so the phone's Back gesture (and the browser's) goes to the previous question.
+  history.pushState({n: trail.length}, "");
   if (a[1].go) show(a[1].go, true); else result(a[1]);
 }
 
@@ -194,12 +196,20 @@ function result(r) {
     '<ol class="path">' + answers.map(function (t) { return "<li>" + esc(t) + "</li>"; }).join("") + "</ol>";
 }
 
-back.addEventListener("click", function () {
-  if (!trail.length) return;
-  answers.pop();
-  show(trail.pop(), true);
+// Undo answers until only n are left, then show that question again.
+function goBackTo(n) {
+  var id = "medicine";
+  while (trail.length > n) { answers.pop(); id = trail.pop(); }
+  show(id, true);
+}
+window.addEventListener("popstate", function (e) {
+  var n = (e.state && e.state.n) || 0;
+  if (n < trail.length) goBackTo(n);
 });
-document.getElementById("restart").addEventListener("click", function () { trail = []; answers = []; show("medicine", true); });
+back.addEventListener("click", function () { if (trail.length) history.back(); });
+document.getElementById("restart").addEventListener("click", function () {
+  if (trail.length) history.go(-trail.length); else show("medicine", true);
+});
 
 show("medicine");
 </script>

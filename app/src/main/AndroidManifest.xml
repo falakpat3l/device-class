@@ -6,7 +6,12 @@
         android:icon="@mipmap/ic_launcher"
         android:label="Device Class"
         android:theme="@style/Theme.App">
-        <activity android:name=".MainActivity" android:exported="true">
+        <!-- configChanges: rotating the phone or resizing the window keeps the page as it is,
+             instead of reloading it and losing the answers. -->
+        <activity
+            android:name=".MainActivity"
+            android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize|keyboardHidden"
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />

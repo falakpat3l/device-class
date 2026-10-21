@@ -6,46 +6,96 @@
 <title>Device Class Finder</title>
 <meta name="description" content="Answer a few plain questions to see which risk class (A to D) a medical device likely falls in under India's Medical Device Rules, 2017.">
 <link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="icon" href="icon-192.png" type="image/png" sizes="192x192">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
 <meta name="theme-color" content="#000000">
 <style>
-@font-face{font-family:"Exo 2";src:url(fonts/exo2_regular.ttf);font-weight:400}
-@font-face{font-family:"Exo 2";src:url(fonts/exo2_semibold.ttf);font-weight:500 600}
-@font-face{font-family:"Exo 2";src:url(fonts/exo2_bold.ttf);font-weight:700}
+@font-face{font-family:"Exo 2";src:url(fonts/exo2_regular.ttf);font-weight:400;font-display:swap}
+@font-face{font-family:"Exo 2";src:url(fonts/exo2_semibold.ttf);font-weight:500 600;font-display:swap}
+@font-face{font-family:"Exo 2";src:url(fonts/exo2_bold.ttf);font-weight:700;font-display:swap}
 </style>
 <style>
-/* Same look as padachar: pure black, Exo 2, one soft blue accent, rounded pills. */
+/* Same look as padachar: pure black, Exo 2, one soft blue accent, rounded pills.
+   Class colors: a calm green, yellow, orange, red scale that stays readable on black. */
 :root{--bg:#000;--card:#0d0d0d;--line:#2a2a2a;--fg:#ededed;--muted:#9e9e9e;--accent:#8ab4f8}
 *{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
 body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.5 "Exo 2",system-ui,sans-serif;
 display:flex;justify-content:center;padding:32px 16px 48px}
-main{width:100%;max-width:560px;text-align:center}
-h1{font-weight:600;font-size:28px;margin:0 0 4px}
-.sub{color:var(--muted);margin:0 0 24px}
-.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:22px 18px;margin-bottom:16px}
-.q{font-size:19px;font-weight:500;margin:0 0 6px}
-.hint{color:var(--muted);font-size:14px;margin:0 0 16px}
-.opts{display:flex;flex-direction:column;gap:10px}
-button[hidden]{display:none}
+main{width:100%;max-width:560px}
+header{text-align:center;margin-bottom:22px}
+h1{font-weight:600;font-size:28px;line-height:1.2;margin:0 0 6px}
+.sub{color:var(--muted);margin:0}
+.step{display:flex;justify-content:center;min-height:28px;margin:0 0 12px}
+.step span{font-size:13px;font-weight:500;color:var(--accent);background:rgba(138,180,248,.1);
+border:1px solid rgba(138,180,248,.25);border-radius:999px;padding:3px 12px;letter-spacing:.3px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:22px 18px;margin-bottom:14px;overflow:hidden}
+.view{animation:fwd .22s ease-out}
+.view.rev{animation-name:rev}
+@keyframes fwd{from{opacity:0;transform:translateX(14px)}}
+@keyframes rev{from{opacity:0;transform:translateX(-14px)}}
+.q{font-size:19px;font-weight:500;line-height:1.4;margin:0}
+.hint{color:var(--muted);font-size:14px;margin:6px 0 0}
+.q:focus,.risk:focus{outline:none}
+.opts{display:flex;flex-direction:column;gap:10px;margin-top:18px}
 button{font:inherit;color:var(--fg);background:none;border:1px solid var(--line);border-radius:999px;
-padding:11px 18px;cursor:pointer;transition:border-color .15s,background .15s}
-button:hover,button:focus-visible{border-color:var(--accent);background:rgba(138,180,248,.08);outline:none}
-.row{display:flex;justify-content:center;gap:10px;margin-top:6px}
-.small{font-size:14px;padding:7px 14px;color:var(--muted)}
-.step{color:var(--muted);font-size:14px;min-height:21px;margin:0 0 12px}
-.big{font-size:64px;font-weight:700;color:var(--accent);line-height:1;margin:6px 0}
-.risk{font-size:18px;font-weight:500;margin:0 0 14px}
-.path{text-align:left;color:var(--muted);font-size:14px;margin:0;padding-left:18px}
-.path li{margin-bottom:4px}
-.note{color:var(--muted);font-size:13px;margin:18px 0 0}
+padding:11px 18px;cursor:pointer;transition:border-color .15s,background-color .15s;-webkit-tap-highlight-color:transparent}
+button[hidden]{display:none}
+button:focus-visible{border-color:var(--accent);background-color:rgba(138,180,248,.08);outline:2px solid var(--accent);outline-offset:2px}
+button:active{background-color:rgba(138,180,248,.14)}
+/* Hover only on devices with a real pointer, so a tap does not leave the next question's answer lit up. */
+@media (hover:hover){button:hover{border-color:var(--accent);background-color:rgba(138,180,248,.08)}}
+.opt{display:flex;align-items:center;justify-content:space-between;gap:14px;width:100%;text-align:left;
+border-radius:14px;padding:14px 16px;background:#000;line-height:1.4}
+.opt::after{content:"";flex:none;width:7px;height:7px;margin-right:4px;border-top:2px solid var(--muted);
+border-right:2px solid var(--muted);transform:rotate(45deg);transition:border-color .15s}
+.opt:focus-visible::after{border-color:var(--accent)}
+@media (hover:hover){.opt:hover::after{border-color:var(--accent)}}
+.row{display:flex;justify-content:center;gap:10px}
+.small{font-size:14px;padding:7px 16px;color:var(--muted)}
+/* Result */
+.result{text-align:center}
+.cls-A{--k:#81c995;--kt:rgba(129,201,149,.12)}
+.cls-B{--k:#fdd663;--kt:rgba(253,214,99,.12)}
+.cls-C{--k:#fcad70;--kt:rgba(252,173,112,.12)}
+.cls-D{--k:#f28b82;--kt:rgba(242,139,130,.12)}
+.label{color:var(--muted);font-size:14px;margin:0 0 12px}
+.ring{width:104px;height:104px;margin:0 auto 14px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+font-size:52px;font-weight:700;line-height:1;color:var(--k);border:3px solid var(--k);background:var(--kt);box-shadow:0 0 0 7px var(--kt)}
+.scale{display:flex;justify-content:center;gap:6px;margin:0 0 16px}
+.scale span{min-width:32px;padding:2px 0;border-radius:999px;font-size:12px;font-weight:600;color:var(--muted);border:1px solid var(--line)}
+.scale .on{color:#000;background:var(--k);border-color:var(--k)}
+.risk{font-size:21px;font-weight:600;line-height:1.3;margin:0 0 8px}
+.why{margin:0 0 10px}
+.lic{color:var(--muted);font-size:14px;margin:0 0 18px}
+.copy{color:var(--accent);border-color:rgba(138,180,248,.45);padding:9px 20px}
+.msg{min-height:20px;font-size:13px;color:var(--muted);margin:8px 0 0}
+.manual{display:block;width:100%;min-height:150px;margin:8px 0 0;padding:10px 12px;background:#000;color:var(--fg);
+border:1px solid var(--line);border-radius:12px;font:13px/1.45 "Exo 2",system-ui,sans-serif;resize:vertical}
+.manual:focus{outline:2px solid var(--accent);outline-offset:1px}
+.path-h{font-size:14px;font-weight:600;color:var(--muted);text-align:left;margin:18px 0 4px;padding-top:16px;border-top:1px solid var(--line)}
+.path{list-style:none;margin:0;padding:0;text-align:left;font-size:14px;counter-reset:n}
+.path li{display:grid;grid-template-columns:22px 1fr;column-gap:6px;padding:9px 0;border-bottom:1px solid #1a1a1a}
+.path li:last-child{border-bottom:0}
+.path li::before{counter-increment:n;content:counter(n);color:var(--muted);grid-row:span 2}
+.pq{color:var(--muted)}
+.pa{color:var(--fg);font-weight:500}
+.note{color:var(--muted);font-size:13px;text-align:center;margin:22px 0 0}
 a{color:var(--accent)}
+.vh{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+@media (min-width:600px){body{padding-top:56px}.card{padding:26px 24px}}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
 </style>
 </head>
 <body>
 <main>
+<header>
 <h1>Device Class Finder</h1>
 <p class="sub">Which risk class is my medical device in India?</p>
-<p class="step" id="step"></p>
-<div class="card" id="card" aria-live="polite"></div>
+</header>
+<p class="step"><span id="step"></span></p>
+<div class="card" id="card"></div>
 <div class="row"><button class="small" id="back" type="button">Back</button><button class="small" id="restart" type="button">Start again</button></div>
 <p class="note">Guidance only, based on the risk-based rules in the First Schedule of India's Medical Device Rules, 2017 (which follow the international GHTF model). It is not regulatory advice. Check the official rules and CDSCO's published classification lists before relying on it. Made by <a href="https://falakpatel.com">Falak Patel</a> &middot; <a href="https://github.com/falakpat3l/device-class">source</a>.</p>
 </main>
@@ -158,60 +208,138 @@ var meaning = {
   D: ["High risk", "Licensing goes through the Central Licensing Authority (CDSCO)."]
 };
 
-var card = document.getElementById("card"), step = document.getElementById("step"), back = document.getElementById("back");
-var trail = [];   // steps visited, so Back works
-var answers = [];   // the answers picked, shown with the result
+var START = "medicine";
+var card = document.getElementById("card"), step = document.getElementById("step");
+var back = document.getElementById("back"), restart = document.getElementById("restart");
+var picks = [];     // the answer number picked at each question, in order (also kept in browser history)
+var shownAt = 0;    // when the current screen appeared, to ignore an accidental double tap
 
-function esc(t) { return t.replace(/&/g, "&amp;").replace(/</g, "&lt;"); }
+function esc(t) { return String(t).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;"); }
 
-function show(id, focus) {
-  var s = steps[id];
-  back.hidden = !trail.length;
+// Follow the picked answers from the first question.
+// Gives the questions and answers so far, plus either the next question id or the result.
+// Gives null if the picks do not fit the questions (for example an old saved state).
+function walk(p) {
+  var id = START, path = [];
+  for (var k = 0; k < p.length; k++) {
+    var s = steps[id], a = s && s.a[p[k]];
+    if (!a) return null;
+    path.push([s.q, a[0]]);
+    if (a[1].go) id = a[1].go;
+    else return k === p.length - 1 ? {path: path, result: a[1]} : null;
+  }
+  return {path: path, id: id};
+}
+
+// Draw the current screen. "dir" is 1 going forward, -1 going back, 0 on first load.
+function render(dir, focus) {
+  var w = walk(picks);
+  if (!w) { picks = []; history.replaceState({picks: []}, ""); w = walk(picks); }
+  back.hidden = restart.hidden = !picks.length;
+  var view = document.createElement("div");
+  view.className = "view" + (dir < 0 ? " rev" : "");
+  if (!dir) view.style.animation = "none";
+  card.innerHTML = "";
+  card.appendChild(view);
+  shownAt = Date.now();
+  if (w.result) showResult(view, w, focus); else showQuestion(view, w, focus);
+}
+
+function showQuestion(view, w, focus) {
+  var s = steps[w.id];
   // The path length depends on the answers, so show the question number, not a progress bar.
-  step.textContent = "Question " + (trail.length + 1);
-  var html = '<p class="q">' + esc(s.q) + "</p>" + (s.hint ? '<p class="hint">' + esc(s.hint) + "</p>" : "") + '<div class="opts">';
-  s.a.forEach(function (a, i) { html += '<button type="button" data-i="' + i + '">' + esc(a[0]) + "</button>"; });
-  card.innerHTML = html + "</div>";
-  card.querySelectorAll("button").forEach(function (b) {
-    b.addEventListener("click", function () { choose(id, s.a[+b.dataset.i]); });
+  step.textContent = "Question " + (w.path.length + 1);
+  var html = '<h2 class="q" id="qtext">' + esc(s.q) + "</h2>" + (s.hint ? '<p class="hint" id="qhint">' + esc(s.hint) + "</p>" : "") +
+    '<div class="opts" role="group" aria-labelledby="step qtext"' + (s.hint ? ' aria-describedby="qhint"' : "") + ">";
+  s.a.forEach(function (a, i) { html += '<button class="opt" type="button" data-i="' + i + '">' + esc(a[0]) + "</button>"; });
+  view.innerHTML = html + "</div>";
+  view.querySelectorAll(".opt").forEach(function (b) {
+    b.addEventListener("click", function () { choose(+b.dataset.i); });
   });
   // Move focus only after the user acted, so the first question does not look pre-selected on load.
-  if (focus) card.querySelector("button").focus();
+  // Screen readers then read the question number, the question and the first answer.
+  if (focus) view.querySelector(".opt").focus();
 }
 
-function choose(id, a) {
-  trail.push(id);
-  answers.push(steps[id].q + " " + a[0]);
-  // One history entry per answer, so the phone's Back gesture (and the browser's) goes to the previous question.
-  history.pushState({n: trail.length}, "");
-  if (a[1].go) show(a[1].go, true); else result(a[1]);
-}
-
-function result(r) {
-  var m = meaning[r.cls];
+function showResult(view, w, focus) {
+  var r = w.result, m = meaning[r.cls];
   step.textContent = "Result";
-  back.hidden = false;
-  card.innerHTML = '<p class="hint">Likely class</p><div class="big">' + r.cls + '</div><p class="risk">' + m[0] + "</p>" +
-    "<p>" + esc(r.why) + ".</p><p class=\"hint\">" + m[1] + " If more than one rule fits your device, the highest class applies.</p>" +
-    '<ol class="path">' + answers.map(function (t) { return "<li>" + esc(t) + "</li>"; }).join("") + "</ol>";
+  view.className += " result cls-" + r.cls;
+  view.innerHTML = '<p class="label" aria-hidden="true">Likely class</p>' +
+    '<div class="ring" aria-hidden="true">' + r.cls + "</div>" +
+    '<div class="scale" aria-hidden="true">' + ["A", "B", "C", "D"].map(function (c) {
+      return "<span" + (c === r.cls ? ' class="on"' : "") + ">" + c + "</span>"; }).join("") + "</div>" +
+    '<h2 class="risk" id="rhead" tabindex="-1"><span class="vh">Likely class ' + r.cls + ": </span>" + m[0] + "</h2>" +
+    '<p class="why">' + esc(r.why) + ".</p>" +
+    '<p class="lic">' + m[1] + " If more than one rule fits your device, the highest class applies.</p>" +
+    '<button class="copy" type="button">Copy result</button><p class="msg" role="status"></p>' +
+    '<h3 class="path-h">Your answers</h3><ol class="path" role="list">' + w.path.map(function (qa) {
+      return '<li><span class="pq">' + esc(qa[0]) + '</span><span class="pa">' + esc(qa[1]) + "</span></li>"; }).join("") + "</ol>";
+  view.querySelector(".copy").addEventListener("click", function () { copyResult(view, w); });
+  // Without this, focus is left on the removed answer button and drops to the page body.
+  if (focus) view.querySelector("#rhead").focus();
 }
 
-// Undo answers until only n are left, then show that question again.
-function goBackTo(n) {
-  var id = "medicine";
-  while (trail.length > n) { answers.pop(); id = trail.pop(); }
-  show(id, true);
+function resultText(w) {
+  var r = w.result, m = meaning[r.cls];
+  return "Device Class Finder result\n" +
+    "Likely class: " + r.cls + " (" + m[0] + ")\n" +
+    "Reason: " + r.why + ".\n" +
+    m[1] + " If more than one rule fits your device, the highest class applies.\n\n" +
+    "Answers:\n" + w.path.map(function (qa, i) { return (i + 1) + ". " + qa[0] + " " + qa[1]; }).join("\n") + "\n\n" +
+    "Guidance only, not regulatory advice. Based on the First Schedule of India's Medical Device Rules, 2017.";
 }
+
+// Copy with the Clipboard API, then the older copy command, and if both fail show the text to copy by hand.
+function copyResult(view, w) {
+  var text = resultText(w), msg = view.querySelector(".msg");
+  function done() { msg.textContent = "Copied. You can paste it anywhere."; }
+  function oldWay() {
+    var ok = false, ta = document.createElement("textarea");
+    ta.value = text; ta.setAttribute("readonly", ""); ta.style.position = "fixed"; ta.style.opacity = "0";
+    document.body.appendChild(ta); ta.select();
+    try { ok = document.execCommand("copy"); } catch (e) { ok = false; }
+    document.body.removeChild(ta);
+    view.querySelector(".copy").focus();
+    if (ok) return done();
+    if (!view.querySelector(".manual")) {
+      var box = document.createElement("textarea");
+      box.className = "manual"; box.readOnly = true; box.value = text; box.setAttribute("aria-label", "Result text");
+      msg.parentNode.insertBefore(box, msg.nextSibling);
+    }
+    msg.textContent = "Copying is blocked here. The text is selected below, copy it by hand.";
+    var m = view.querySelector(".manual"); m.focus(); m.select(); m.scrollTop = 0;
+  }
+  if (navigator.clipboard && window.isSecureContext) navigator.clipboard.writeText(text).then(done, oldWay);
+  else oldWay();
+}
+
+function choose(i) {
+  // A quick double tap would otherwise also answer the next question, which appears in the same spot.
+  if (Date.now() - shownAt < 250) return;
+  picks = picks.concat(i);
+  // One history entry per answer, so the phone's Back gesture (and the browser's) goes to the previous question.
+  history.pushState({picks: picks}, "");
+  render(1, true);
+}
+
+// Back, Forward and Start again all move through history; the state says which answers were picked.
 window.addEventListener("popstate", function (e) {
-  var n = (e.state && e.state.n) || 0;
-  if (n < trail.length) goBackTo(n);
+  var p = (e.state && e.state.picks) || [];
+  var dir = p.length < picks.length ? -1 : 1;
+  picks = p.slice();
+  render(dir, true);
 });
-back.addEventListener("click", function () { if (trail.length) history.back(); });
-document.getElementById("restart").addEventListener("click", function () {
-  if (trail.length) history.go(-trail.length); else show("medicine", true);
+// Holding Enter down would keep answering question after question.
+card.addEventListener("keydown", function (e) {
+  if (e.repeat && (e.key === "Enter" || e.key === " ")) e.preventDefault();
 });
+back.addEventListener("click", function () { if (picks.length) history.back(); });
+restart.addEventListener("click", function () { if (picks.length) history.go(-picks.length); });
 
-show("medicine");
+// After a reload the browser keeps the history state, so pick up where the user was.
+picks = (history.state && history.state.picks) || [];
+render(0, false);
 </script>
 </body>
 </html>

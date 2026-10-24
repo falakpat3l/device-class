@@ -11,9 +11,9 @@
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <meta name="theme-color" content="#000000">
 <style>
-@font-face{font-family:"Exo 2";src:url(fonts/exo2_regular.ttf);font-weight:400;font-display:swap}
-@font-face{font-family:"Exo 2";src:url(fonts/exo2_semibold.ttf);font-weight:500 600;font-display:swap}
-@font-face{font-family:"Exo 2";src:url(fonts/exo2_bold.ttf);font-weight:700;font-display:swap}
+@font-face{font-family:"Exo 2";src:url(fonts/exo2_regular.woff2) format("woff2");font-weight:400;font-display:swap}
+@font-face{font-family:"Exo 2";src:url(fonts/exo2_semibold.woff2) format("woff2");font-weight:500 600;font-display:swap}
+@font-face{font-family:"Exo 2";src:url(fonts/exo2_bold.woff2) format("woff2");font-weight:700;font-display:swap}
 </style>
 <style>
 /* Same look as padachar: pure black, Exo 2, one soft blue accent, rounded pills.
@@ -69,7 +69,9 @@ font-size:52px;font-weight:700;line-height:1;color:var(--k);border:3px solid var
 .risk{font-size:21px;font-weight:600;line-height:1.3;margin:0 0 8px}
 .why{margin:0 0 10px}
 .lic{color:var(--muted);font-size:14px;margin:0 0 18px}
+.acts{display:flex;flex-wrap:wrap;justify-content:center;gap:10px}
 .copy{color:var(--accent);border-color:rgba(138,180,248,.45);padding:9px 20px}
+.pdate{display:none}
 .msg{min-height:20px;font-size:13px;color:var(--muted);margin:8px 0 0}
 .manual{display:block;width:100%;min-height:150px;margin:8px 0 0;padding:10px 12px;background:#000;color:var(--fg);
 border:1px solid var(--line);border-radius:12px;font:13px/1.45 "Exo 2",system-ui,sans-serif;resize:vertical}
@@ -82,10 +84,47 @@ border:1px solid var(--line);border-radius:12px;font:13px/1.45 "Exo 2",system-ui
 .pq{color:var(--muted)}
 .pa{color:var(--fg);font-weight:500}
 .note{color:var(--muted);font-size:13px;text-align:center;margin:22px 0 0}
+/* "What the classes mean", shown on the first question only */
+.info{background:var(--card);border:1px solid var(--line);border-radius:16px;margin-bottom:14px}
+.info summary{list-style:none;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:12px;
+padding:13px 18px;border-radius:16px;font-weight:500;color:var(--muted);-webkit-tap-highlight-color:transparent}
+.info summary::-webkit-details-marker{display:none}
+.info summary::after{content:"";flex:none;width:7px;height:7px;margin-right:4px;border-right:2px solid var(--muted);
+border-bottom:2px solid var(--muted);transform:translateY(-2px) rotate(45deg);transition:transform .15s,border-color .15s}
+.info[open] summary::after{transform:translateY(2px) rotate(-135deg)}
+.info summary:focus{outline:none}
+.info summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px;color:var(--fg)}
+@media (hover:hover){.info summary:hover{color:var(--fg)}.info summary:hover::after{border-color:var(--accent)}}
+.classes{list-style:none;margin:0;padding:0 18px 8px}
+.classes li{display:flex;gap:12px;align-items:flex-start;padding:10px 0;border-top:1px solid #1a1a1a;font-size:14px}
+.badge{flex:none;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+font-weight:700;font-size:14px;color:var(--k);border:2px solid var(--k);background:var(--kt)}
+.classes b{font-weight:600;display:block}
+.classes .lic-s{color:var(--muted)}
 a{color:var(--accent)}
 .vh{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 @media (min-width:600px){body{padding-top:56px}.card{padding:26px 24px}}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+/* Print or save as PDF: a plain one-page summary of the result, black on white, no buttons. */
+@media print{
+@page{margin:14mm}
+:root{--bg:#fff;--card:#fff;--line:#bbb;--fg:#000;--muted:#444}
+body{display:block;padding:0;font-size:11pt}
+main{max-width:none}
+header{margin-bottom:10px}
+h1{font-size:20pt}
+.sub,.step,.row,.info,.acts,.msg,.manual,.scale{display:none!important}
+.card{border:0;border-radius:0;padding:0;margin:0}
+.view{animation:none!important}
+.pdate{display:block;color:var(--muted);font-size:10pt;margin:0 0 10px}
+.label{margin-bottom:8px}
+.ring{width:64px;height:64px;font-size:32px;color:#000;border:2px solid #000;background:none;box-shadow:none;margin-bottom:10px}
+.lic{margin-bottom:0}
+.path-h{margin-top:14px;padding-top:12px}
+.path li{border-bottom-color:#ddd;padding:6px 0;break-inside:avoid}
+.note{margin-top:16px;font-size:9pt}
+a{color:#000}
+}
 </style>
 </head>
 <body>
@@ -96,6 +135,7 @@ a{color:var(--accent)}
 </header>
 <p class="step"><span id="step"></span></p>
 <div class="card" id="card"></div>
+<details class="info" id="classes"><summary>What the classes mean</summary><ul class="classes" id="classList" role="list"></ul></details>
 <div class="row"><button class="small" id="back" type="button">Back</button><button class="small" id="restart" type="button">Start again</button></div>
 <p class="note">Guidance only, based on the risk-based rules in the First Schedule of India's Medical Device Rules, 2017 (which follow the international GHTF model). It is not regulatory advice. Check the official rules and CDSCO's published classification lists before relying on it. Made by <a href="https://falakpatel.com">Falak Patel</a> &middot; <a href="https://github.com/falakpat3l/device-class">source</a>.</p>
 </main>
@@ -211,8 +251,17 @@ var meaning = {
 var START = "medicine";
 var card = document.getElementById("card"), step = document.getElementById("step");
 var back = document.getElementById("back"), restart = document.getElementById("restart");
+var classes = document.getElementById("classes");
+// Printing from inside the Android app (a WebView) does nothing, so the print button is only on the website.
+var canPrint = typeof window.print === "function" && location.host !== "appassets.androidplatform.net";
 var picks = [];     // the answer number picked at each question, in order (also kept in browser history)
 var shownAt = 0;    // when the current screen appeared, to ignore an accidental double tap
+
+// Today's date for the printed summary, for example "21 October 2026".
+function today() {
+  try { return new Date().toLocaleDateString("en-IN", {day: "numeric", month: "long", year: "numeric"}); }
+  catch (e) { return new Date().toDateString(); }
+}
 
 function esc(t) { return String(t).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;"); }
 
@@ -236,6 +285,7 @@ function render(dir, focus) {
   var w = walk(picks);
   if (!w) { picks = []; history.replaceState({picks: []}, ""); w = walk(picks); }
   back.hidden = restart.hidden = !picks.length;
+  classes.hidden = picks.length > 0;
   var view = document.createElement("div");
   view.className = "view" + (dir < 0 ? " rev" : "");
   if (!dir) view.style.animation = "none";
@@ -265,17 +315,21 @@ function showResult(view, w, focus) {
   var r = w.result, m = meaning[r.cls];
   step.textContent = "Result";
   view.className += " result cls-" + r.cls;
-  view.innerHTML = '<p class="label" aria-hidden="true">Likely class</p>' +
+  view.innerHTML = '<p class="pdate">Date: ' + today() + "</p>" +
+    '<p class="label" aria-hidden="true">Likely class</p>' +
     '<div class="ring" aria-hidden="true">' + r.cls + "</div>" +
     '<div class="scale" aria-hidden="true">' + ["A", "B", "C", "D"].map(function (c) {
       return "<span" + (c === r.cls ? ' class="on"' : "") + ">" + c + "</span>"; }).join("") + "</div>" +
     '<h2 class="risk" id="rhead" tabindex="-1"><span class="vh">Likely class ' + r.cls + ": </span>" + m[0] + "</h2>" +
     '<p class="why">' + esc(r.why) + ".</p>" +
     '<p class="lic">' + m[1] + " If more than one rule fits your device, the highest class applies.</p>" +
-    '<button class="copy" type="button">Copy result</button><p class="msg" role="status"></p>' +
+    '<div class="acts"><button class="copy" type="button">Copy result</button>' +
+    (canPrint ? '<button class="copy print" type="button">Print or save as PDF</button>' : "") + "</div>" +
+    '<p class="msg" role="status"></p>' +
     '<h3 class="path-h">Your answers</h3><ol class="path" role="list">' + w.path.map(function (qa) {
       return '<li><span class="pq">' + esc(qa[0]) + '</span><span class="pa">' + esc(qa[1]) + "</span></li>"; }).join("") + "</ol>";
   view.querySelector(".copy").addEventListener("click", function () { copyResult(view, w); });
+  if (canPrint) view.querySelector(".print").addEventListener("click", function () { window.print(); });
   // Without this, focus is left on the removed answer button and drops to the page body.
   if (focus) view.querySelector("#rhead").focus();
 }
@@ -293,10 +347,12 @@ function resultText(w) {
 // Copy with the Clipboard API, then the older copy command, and if both fail show the text to copy by hand.
 function copyResult(view, w) {
   var text = resultText(w), msg = view.querySelector(".msg");
-  function done() { msg.textContent = "Copied. You can paste it anywhere."; }
+  // Clear first, so a second copy is announced again by screen readers.
+  function say(t) { msg.textContent = ""; setTimeout(function () { msg.textContent = t; }, 50); }
+  function done() { say("Copied. You can paste it anywhere."); }
   function oldWay() {
     var ok = false, ta = document.createElement("textarea");
-    ta.value = text; ta.setAttribute("readonly", ""); ta.style.position = "fixed"; ta.style.opacity = "0";
+    ta.value = text; ta.setAttribute("readonly", ""); ta.style.position = "fixed"; ta.style.top = "0"; ta.style.left = "0"; ta.style.opacity = "0";
     document.body.appendChild(ta); ta.select();
     try { ok = document.execCommand("copy"); } catch (e) { ok = false; }
     document.body.removeChild(ta);
@@ -307,7 +363,7 @@ function copyResult(view, w) {
       box.className = "manual"; box.readOnly = true; box.value = text; box.setAttribute("aria-label", "Result text");
       msg.parentNode.insertBefore(box, msg.nextSibling);
     }
-    msg.textContent = "Copying is blocked here. The text is selected below, copy it by hand.";
+    say("Copying is blocked here. The text is selected below, copy it by hand.");
     var m = view.querySelector(".manual"); m.focus(); m.select(); m.scrollTop = 0;
   }
   if (navigator.clipboard && window.isSecureContext) navigator.clipboard.writeText(text).then(done, oldWay);
@@ -336,6 +392,23 @@ card.addEventListener("keydown", function (e) {
 });
 back.addEventListener("click", function () { if (picks.length) history.back(); });
 restart.addEventListener("click", function () { if (picks.length) history.go(-picks.length); });
+
+// The date on a printed result is the day it is printed.
+window.addEventListener("beforeprint", function () {
+  var d = card.querySelector(".pdate");
+  if (d) d.textContent = "Date: " + today();
+});
+
+// "What the classes mean" uses the same wording as the result screen.
+document.getElementById("classList").innerHTML = ["A", "B", "C", "D"].map(function (c) {
+  return '<li class="cls-' + c + '"><span class="badge" aria-hidden="true">' + c + "</span><span><b>" +
+    '<span class="vh">Class ' + c + ": </span>" + meaning[c][0] + '</b><span class="lic-s">' + meaning[c][1] + "</span></span></li>";
+}).join("");
+
+// Offline use on the website. Not in the Android app, which already has every file inside the APK.
+if ("serviceWorker" in navigator && location.protocol === "https:" && location.host !== "appassets.androidplatform.net") {
+  try { navigator.serviceWorker.register("sw.js").catch(function () {}); } catch (e) {}
+}
 
 // After a reload the browser keeps the history state, so pick up where the user was.
 picks = (history.state && history.state.picks) || [];

@@ -19,10 +19,16 @@ Answer a few plain questions and see which risk class (A, B, C or D) a medical d
 
 ## How it is built
 
-- All questions and answers live in one list (`steps`) in `docs/index.html`, so a rule is easy to read or change.
+- All questions and answers live in one list (`steps`) in `docs/app.js`, so a rule is easy to read or change. Styles are in `docs/style.css`.
 - The Android app (`app/`) shows the same `docs/` page from inside the APK, with no internet permission.
-- `docs/sw.js` keeps a copy of the page, fonts and icons for offline use on the website (it is not used in the app). The page itself is always fetched fresh when online. If you change a font or icon, raise `VERSION` in `sw.js`.
+- `docs/sw.js` keeps a copy of the page, fonts and icons for offline use on the website (it is not used in the app). The page, `app.js` and `style.css` are always fetched fresh when online. If you change a font or icon, raise `VERSION` in `sw.js`.
 - Build the APK from the Actions tab ("Build APK"), or push a tag like `v0.1.0-alpha`.
+
+## Security
+
+- The page only loads its own files: a Content-Security-Policy blocks outside scripts, styles, frames and forms. There is no inline code.
+- The offline copy saves only complete answers from this site, never error pages.
+- The Android app has no internet permission, loads only its own files, and cannot read other files on the phone. Links open in your browser.
 
 ## Please note
 

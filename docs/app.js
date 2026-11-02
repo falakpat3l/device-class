@@ -1,0 +1,279 @@
+// Each step is a question. An answer either jumps to another step ("go")
+// or gives a result ("cls" = A, B, C or D, with "why" = the reason shown to the user).
+var steps = {
+  medicine: {q: "Does the device contain a medicine that helps it work?",
+    hint: "For example a drug-coated stent or an antibiotic bone cement.",
+    a: [["Yes", {cls: "D", why: "Contains a medicinal substance that supports the device"}], ["No", {go: "tissue"}]]},
+  tissue: {q: "Is it made from human or animal tissue (or something derived from it)?",
+    hint: "For example a pig heart valve or a collagen implant.",
+    a: [["Yes, and it only touches intact skin", {cls: "A", why: "Tissue-derived, but only touches intact skin"}],
+        ["Yes", {cls: "D", why: "Made from human or animal tissue"}], ["No", {go: "contra"}]]},
+  contra: {q: "Is it for contraception or to prevent sexually transmitted infections?",
+    hint: "",
+    a: [["Yes, implanted or used long term inside the body", {cls: "D", why: "Contraception, implanted or long-term invasive"}],
+        ["Yes, other", {cls: "C", why: "Contraception or prevention of sexually transmitted infections"}], ["No", {go: "steril"}]]},
+  steril: {q: "Is it made to clean, disinfect or sterilise other devices or contact lenses?",
+    hint: "",
+    a: [["Contact lens cleaning or disinfecting", {cls: "C", why: "Cleans or disinfects contact lenses"}],
+        ["Sterilising or final disinfection of devices", {cls: "C", why: "Sterilises devices, or disinfects them as the last step"}],
+        ["Cleaning or disinfecting before sterilisation", {cls: "B", why: "Disinfects devices before they are sterilised"}],
+        ["No", {go: "active"}]]},
+  active: {q: "Does it need electricity or another power source to work?",
+    hint: "Batteries, mains power or compressed gas count. Software sold as a device also counts here.",
+    a: [["Yes", {go: "activeKind"}], ["No", {go: "invasive"}]]},
+  activeKind: {q: "What does the powered device mainly do?",
+    hint: "",
+    a: [["Gives or exchanges energy for treatment", {go: "therapy"}],
+        ["Diagnoses or monitors the body", {go: "diag"}],
+        ["Gives medicines or removes body fluids", {go: "drug"}],
+        ["Something else", {cls: "A", why: "Powered device that does not treat, diagnose or deliver medicines"}]]},
+  therapy: {q: "Could the energy be dangerous if something goes wrong?",
+    hint: "Think of the energy type, how much is given, and the part of the body treated. For example a surgical laser versus a muscle stimulator for comfort.",
+    a: [["Yes, potentially hazardous", {cls: "C", why: "Gives energy for treatment in a potentially hazardous way"}],
+        ["No", {cls: "B", why: "Gives or exchanges energy for treatment"}]]},
+  diag: {q: "Which is closest?",
+    hint: "",
+    a: [["Monitors vital signs where a change could mean immediate danger", {cls: "C", why: "Monitors vital functions (heart, breathing, brain) where changes can be immediately dangerous"}],
+        ["Uses X-rays or other ionising radiation", {cls: "C", why: "Uses ionising radiation for diagnosis"}],
+        ["Other diagnosis, imaging or monitoring", {cls: "B", why: "Powered device for diagnosis or monitoring"}]]},
+  drug: {q: "Could giving or removing them be dangerous?",
+    hint: "Think of the substance, the part of the body and how it is delivered. For example an insulin pump.",
+    a: [["Yes, potentially hazardous", {cls: "C", why: "Gives medicines or removes body fluids in a potentially hazardous way"}],
+        ["No", {cls: "B", why: "Gives medicines or removes body fluids"}]]},
+  invasive: {q: "Does it go into the body?",
+    hint: "",
+    a: [["Through surgery or a cut in the skin", {go: "surgTime"}],
+        ["Through a natural opening (mouth, nose, ear, etc.)", {go: "orificeTime"}],
+        ["No, it stays outside", {go: "nonInv"}]]},
+  orificeTime: {q: "How long does it stay in?",
+    hint: "",
+    a: [["Under 60 minutes", {cls: "A", why: "Goes in through a body opening for under 60 minutes"}],
+        ["Up to 30 days", {go: "orificeShort"}], ["More than 30 days", {go: "orificeLong"}]]},
+  orificeShort: {q: "Does it only reach the mouth (up to the throat), the ear canal or the nose?",
+    hint: "",
+    a: [["Yes", {cls: "A", why: "Short-term use, only in the mouth, ear canal or nose"}],
+        ["No", {cls: "B", why: "Goes in through a body opening for up to 30 days"}]]},
+  orificeLong: {q: "Does it only reach the mouth (up to the throat), the ear canal or the nose, without being absorbed?",
+    hint: "",
+    a: [["Yes", {cls: "B", why: "Long-term use, only in the mouth, ear canal or nose, not absorbed"}],
+        ["No", {cls: "C", why: "Goes in through a body opening for more than 30 days"}]]},
+  surgTime: {q: "How long does it stay in?",
+    hint: "",
+    a: [["Under 60 minutes", {go: "surgTransient"}], ["Up to 30 days", {go: "surgShort"}],
+        ["More than 30 days, or implanted", {go: "surgLong"}]]},
+  surgTransient: {q: "Which is closest?",
+    hint: "",
+    a: [["Touches the heart, central blood vessels or the brain and spinal cord", {cls: "D", why: "Briefly touches the heart, central circulation or central nervous system"}],
+        ["Gives ionising radiation, has a biological effect, is absorbed, or gives medicines", {cls: "C", why: "Brief surgical use with radiation, a biological effect, absorption or medicine delivery"}],
+        ["Reusable surgical instrument (scalpel, forceps)", {cls: "A", why: "Reusable surgical instrument"}],
+        ["None of these", {cls: "B", why: "Brief surgical use"}]]},
+  surgShort: {q: "Which is closest?",
+    hint: "",
+    a: [["Touches the heart, central blood vessels or the brain and spinal cord", {cls: "D", why: "Short-term contact with the heart, central circulation or central nervous system"}],
+        ["Gives ionising radiation, has a biological effect, is absorbed, changes chemically, or gives medicines", {cls: "C", why: "Short-term surgical use with radiation, a biological effect, absorption, chemical change or medicine delivery"}],
+        ["None of these", {cls: "B", why: "Short-term surgical use"}]]},
+  surgLong: {q: "Which is closest?",
+    hint: "",
+    a: [["Touches the heart, central blood vessels or the brain and spinal cord", {cls: "D", why: "Long-term contact with the heart, central circulation or central nervous system"}],
+        ["Keeps someone alive, is powered and implanted, is absorbed, changes chemically, or gives medicines", {cls: "D", why: "Life-sustaining, active implant, absorbed, chemically changing or delivering medicine"}],
+        ["Placed in the teeth", {cls: "B", why: "Long-term device placed in the teeth"}],
+        ["None of these", {cls: "C", why: "Implanted or long-term surgical use"}]]},
+  nonInv: {q: "Which is closest?",
+    hint: "",
+    a: [["Touches broken or wounded skin", {go: "wound"}],
+        ["Stores or carries blood, fluids or tissue to be put back into the body", {go: "channel"}],
+        ["Changes blood or body fluids before they go back in", {go: "modify"}],
+        ["None of these (only touches intact skin, or not the patient at all)", {cls: "A", why: "Non-invasive device"}]]},
+  wound: {q: "What does it do for the wound?",
+    hint: "",
+    a: [["Covers it or absorbs fluid", {cls: "A", why: "Barrier or absorbent for wounds"}],
+        ["Treats deep wounds that heal only from the bottom up", {cls: "C", why: "For wounds through the dermis that heal only by secondary intent"}],
+        ["Manages the wound environment (moisture, healing)", {cls: "B", why: "Manages the wound environment"}]]},
+  channel: {q: "Is it a blood bag?",
+    hint: "",
+    a: [["Yes", {cls: "C", why: "Blood bag"}], ["No", {cls: "B", why: "Stores or channels body fluids or tissue for infusion"}]]},
+  modify: {q: "How does it change them?",
+    hint: "",
+    a: [["Only filters, spins, or exchanges gas or heat", {cls: "B", why: "Filters, centrifuges or exchanges gas or heat"}],
+        ["Changes their chemical or biological make-up", {cls: "C", why: "Changes the biological or chemical make-up of blood or body fluids"}]]}
+};
+
+var meaning = {
+  A: ["Low risk", "Licensing goes through the State Licensing Authority."],
+  B: ["Low to moderate risk", "Licensing goes through the State Licensing Authority."],
+  C: ["Moderate to high risk", "Licensing goes through the Central Licensing Authority (CDSCO)."],
+  D: ["High risk", "Licensing goes through the Central Licensing Authority (CDSCO)."]
+};
+
+var START = "medicine";
+var card = document.getElementById("card"), step = document.getElementById("step");
+var back = document.getElementById("back"), restart = document.getElementById("restart");
+var classes = document.getElementById("classes");
+// Printing from inside the Android app (a WebView) does nothing, so the print button is only on the website.
+var canPrint = typeof window.print === "function" && location.host !== "appassets.androidplatform.net";
+var picks = [];     // the answer number picked at each question, in order (also kept in browser history)
+var shownAt = 0;    // when the current screen appeared, to ignore an accidental double tap
+
+// Today's date for the printed summary, for example "21 October 2026".
+function today() {
+  try { return new Date().toLocaleDateString("en-IN", {day: "numeric", month: "long", year: "numeric"}); }
+  catch (e) { return new Date().toDateString(); }
+}
+
+function esc(t) {
+  return String(t).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+}
+// Saved answers come back from browser history: keep them only if they are a plain list of answer numbers.
+function cleanPicks(p) {
+  return Array.isArray(p) && p.every(function (n) { return n === (n | 0) && n >= 0; }) ? p.slice() : [];
+}
+
+// Follow the picked answers from the first question.
+// Gives the questions and answers so far, plus either the next question id or the result.
+// Gives null if the picks do not fit the questions (for example an old saved state).
+function walk(p) {
+  var id = START, path = [];
+  for (var k = 0; k < p.length; k++) {
+    var s = steps[id], a = s && s.a[p[k]];
+    if (!a) return null;
+    path.push([s.q, a[0]]);
+    if (a[1].go) id = a[1].go;
+    else return k === p.length - 1 ? {path: path, result: a[1]} : null;
+  }
+  return {path: path, id: id};
+}
+
+// Draw the current screen. "dir" is 1 going forward, -1 going back, 0 on first load.
+function render(dir, focus) {
+  var w = walk(picks);
+  if (!w) { picks = []; history.replaceState({picks: []}, ""); w = walk(picks); }
+  back.hidden = restart.hidden = !picks.length;
+  classes.hidden = picks.length > 0;
+  var view = document.createElement("div");
+  view.className = "view" + (dir < 0 ? " rev" : "");
+  if (!dir) view.style.animation = "none";
+  card.innerHTML = "";
+  card.appendChild(view);
+  shownAt = Date.now();
+  if (w.result) showResult(view, w, focus); else showQuestion(view, w, focus);
+}
+
+function showQuestion(view, w, focus) {
+  var s = steps[w.id];
+  // The path length depends on the answers, so show the question number, not a progress bar.
+  step.textContent = "Question " + (w.path.length + 1);
+  var html = '<h2 class="q" id="qtext">' + esc(s.q) + "</h2>" + (s.hint ? '<p class="hint" id="qhint">' + esc(s.hint) + "</p>" : "") +
+    '<div class="opts" role="group" aria-labelledby="step qtext"' + (s.hint ? ' aria-describedby="qhint"' : "") + ">";
+  s.a.forEach(function (a, i) { html += '<button class="opt" type="button" data-i="' + i + '">' + esc(a[0]) + "</button>"; });
+  view.innerHTML = html + "</div>";
+  view.querySelectorAll(".opt").forEach(function (b) {
+    b.addEventListener("click", function () { choose(+b.dataset.i); });
+  });
+  // Move focus only after the user acted, so the first question does not look pre-selected on load.
+  // Screen readers then read the question number, the question and the first answer.
+  if (focus) view.querySelector(".opt").focus();
+}
+
+function showResult(view, w, focus) {
+  var r = w.result, m = meaning[r.cls];
+  step.textContent = "Result";
+  view.className += " result cls-" + r.cls;
+  view.innerHTML = '<p class="pdate">Date: ' + esc(today()) + "</p>" +
+    '<p class="label" aria-hidden="true">Likely class</p>' +
+    '<div class="ring" aria-hidden="true">' + esc(r.cls) + "</div>" +
+    '<div class="scale" aria-hidden="true">' + ["A", "B", "C", "D"].map(function (c) {
+      return "<span" + (c === r.cls ? ' class="on"' : "") + ">" + c + "</span>"; }).join("") + "</div>" +
+    '<h2 class="risk" id="rhead" tabindex="-1"><span class="vh">Likely class ' + esc(r.cls) + ": </span>" + esc(m[0]) + "</h2>" +
+    '<p class="why">' + esc(r.why) + ".</p>" +
+    '<p class="lic">' + esc(m[1]) + " If more than one rule fits your device, the highest class applies.</p>" +
+    '<div class="acts"><button class="copy" type="button">Copy result</button>' +
+    (canPrint ? '<button class="copy print" type="button">Print or save as PDF</button>' : "") + "</div>" +
+    '<p class="msg" role="status"></p>' +
+    '<h3 class="path-h">Your answers</h3><ol class="path" role="list">' + w.path.map(function (qa) {
+      return '<li><span class="pq">' + esc(qa[0]) + '</span><span class="pa">' + esc(qa[1]) + "</span></li>"; }).join("") + "</ol>";
+  view.querySelector(".copy").addEventListener("click", function () { copyResult(view, w); });
+  if (canPrint) view.querySelector(".print").addEventListener("click", function () { window.print(); });
+  // Without this, focus is left on the removed answer button and drops to the page body.
+  if (focus) view.querySelector("#rhead").focus();
+}
+
+function resultText(w) {
+  var r = w.result, m = meaning[r.cls];
+  return "Device Class Finder result\n" +
+    "Likely class: " + r.cls + " (" + m[0] + ")\n" +
+    "Reason: " + r.why + ".\n" +
+    m[1] + " If more than one rule fits your device, the highest class applies.\n\n" +
+    "Answers:\n" + w.path.map(function (qa, i) { return (i + 1) + ". " + qa[0] + " " + qa[1]; }).join("\n") + "\n\n" +
+    "Guidance only, not regulatory advice. Based on the First Schedule of India's Medical Device Rules, 2017.";
+}
+
+// Copy with the Clipboard API, then the older copy command, and if both fail show the text to copy by hand.
+function copyResult(view, w) {
+  var text = resultText(w), msg = view.querySelector(".msg");
+  // Clear first, so a second copy is announced again by screen readers.
+  function say(t) { msg.textContent = ""; setTimeout(function () { msg.textContent = t; }, 50); }
+  function done() { say("Copied. You can paste it anywhere."); }
+  function oldWay() {
+    var ok = false, ta = document.createElement("textarea");
+    ta.value = text; ta.setAttribute("readonly", ""); ta.style.position = "fixed"; ta.style.top = "0"; ta.style.left = "0"; ta.style.opacity = "0";
+    document.body.appendChild(ta); ta.select();
+    try { ok = document.execCommand("copy"); } catch (e) { ok = false; }
+    document.body.removeChild(ta);
+    view.querySelector(".copy").focus();
+    if (ok) return done();
+    if (!view.querySelector(".manual")) {
+      var box = document.createElement("textarea");
+      box.className = "manual"; box.readOnly = true; box.value = text; box.setAttribute("aria-label", "Result text");
+      msg.parentNode.insertBefore(box, msg.nextSibling);
+    }
+    say("Copying is blocked here. The text is selected below, copy it by hand.");
+    var m = view.querySelector(".manual"); m.focus(); m.select(); m.scrollTop = 0;
+  }
+  if (navigator.clipboard && window.isSecureContext) navigator.clipboard.writeText(text).then(done, oldWay);
+  else oldWay();
+}
+
+function choose(i) {
+  // A quick double tap would otherwise also answer the next question, which appears in the same spot.
+  if (Date.now() - shownAt < 250) return;
+  picks = picks.concat(i);
+  // One history entry per answer, so the phone's Back gesture (and the browser's) goes to the previous question.
+  history.pushState({picks: picks}, "");
+  render(1, true);
+}
+
+// Back, Forward and Start again all move through history; the state says which answers were picked.
+window.addEventListener("popstate", function (e) {
+  var p = cleanPicks(e.state && e.state.picks);
+  var dir = p.length < picks.length ? -1 : 1;
+  picks = p;
+  render(dir, true);
+});
+// Holding Enter down would keep answering question after question.
+card.addEventListener("keydown", function (e) {
+  if (e.repeat && (e.key === "Enter" || e.key === " ")) e.preventDefault();
+});
+back.addEventListener("click", function () { if (picks.length) history.back(); });
+restart.addEventListener("click", function () { if (picks.length) history.go(-picks.length); });
+
+// The date on a printed result is the day it is printed.
+window.addEventListener("beforeprint", function () {
+  var d = card.querySelector(".pdate");
+  if (d) d.textContent = "Date: " + today();
+});
+
+// "What the classes mean" uses the same wording as the result screen.
+document.getElementById("classList").innerHTML = ["A", "B", "C", "D"].map(function (c) {
+  return '<li class="cls-' + c + '"><span class="badge" aria-hidden="true">' + c + "</span><span><b>" +
+    '<span class="vh">Class ' + c + ": </span>" + esc(meaning[c][0]) + '</b><span class="lic-s">' + esc(meaning[c][1]) + "</span></span></li>";
+}).join("");
+
+// Offline use on the website. Not in the Android app, which already has every file inside the APK.
+if ("serviceWorker" in navigator && (location.protocol === "https:" || location.hostname === "localhost") &&
+    location.host !== "appassets.androidplatform.net") {
+  try { navigator.serviceWorker.register("sw.js").catch(function () {}); } catch (e) {}
+}
+
+// After a reload the browser keeps the history state, so pick up where the user was.
+picks = cleanPicks(history.state && history.state.picks);
+render(0, false);

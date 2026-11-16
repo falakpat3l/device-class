@@ -35,3 +35,7 @@ Answer a few plain questions and see which risk class (A, B, C or D) a medical d
 Guidance only, not regulatory advice. The questions follow the risk-based rules in the First Schedule of the Medical Device Rules, 2017, which are based on the international GHTF model. Always check the official rules and CDSCO's published classification lists.
 
 Made by [Falak Patel](https://falakpatel.com).
+
+## How this was built
+
+I specified what this should do, tested it and released it. AI coding assistants wrote most of the code.
